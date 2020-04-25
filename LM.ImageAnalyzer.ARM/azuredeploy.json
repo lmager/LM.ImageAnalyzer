@@ -1,0 +1,100 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "ImageAnalyzer-ASP-SkuName": {
+      "type": "string",
+      "defaultValue": "B1",
+      "allowedValues": [
+        "F1",
+        "D1",
+        "B1",
+        "B2",
+        "B3",
+        "S1",
+        "S2",
+        "S3",
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "metadata": {
+        "description": "Describes plan's pricing tier and capacity."
+      }
+    }
+  },
+  "variables": {
+    "ImageAnalyzer-Web-Name": "[concat('ImageAnalyzer-Web')]",
+    "ImageAnalyzer-ASP-Name": "[concat('ImageAnalyzer-ASP')]"
+  },
+  "resources": [
+    {
+      "name": "[variables('ImageAnalyzer-ASP-Name')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-08-01",
+      "sku": {
+        "name": "[parameters('ImageAnalyzer-ASP-SkuName')]"
+      },
+      "dependsOn": [],
+      "tags": {
+        "displayName": "ImageAnalyzer-ASP"
+      },
+      "properties": {
+        "name": "[variables('ImageAnalyzer-ASP-Name')]",
+        "numberOfWorkers": 1
+      }
+    },
+    {
+      "name": "[variables('ImageAnalyzer-Web-Name')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-08-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('ImageAnalyzer-ASP-Name'))]"
+      ],
+      "tags": {
+        "[concat('hidden-related:', resourceId('Microsoft.Web/serverfarms', variables('ImageAnalyzer-ASP-Name')))]": "Resource",
+        "displayName": "ImageAnalyzer-Web"
+      },
+      "properties": {
+        "name": "[variables('ImageAnalyzer-Web-Name')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('ImageAnalyzer-ASP-Name'))]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites/', variables('ImageAnalyzer-Web-Name'))]"
+          ],
+          "properties": {
+            "WEBSITE_TIME_ZONE": "Central Europe Standard Time"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "config",
+          "dependsOn": [
+            "[concat('Microsoft.Web/Sites/', variables('ImageAnalyzer-Web-Name'))]"
+          ],
+          "properties": {
+            "phpVersion": "off",
+            "netFrameworkVersion": "v4.7",
+            "use32BitWorkerProcess": "false",
+            "webSocketsEnabled": false,
+            "alwaysOn": "true",
+            "javaVersion": null,
+            "httpLoggingEnabled": true,
+            "logsDirectorySizeLimit": 40,
+            "apiDefinition": ""
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {}
+}

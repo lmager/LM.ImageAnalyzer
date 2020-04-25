@@ -1,0 +1,39 @@
+﻿@{
+    ViewData["Title"] = "Analyze image";
+}
+
+<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="display-4">Image Analyzer</h1>
+    <p class="lead">
+        Use the button below to upload an image and start the analyzer.
+    </p>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <form method="post" enctype="multipart/form-data" asp-controller="Analyze" asp-action="Capture" id="uploadForm">
+                @Html.AntiForgeryToken()
+
+
+                <center>
+                    <p><strong>Take a picture or upload an image</strong>:</p>
+                    <input type="file" accesskeyclass="btn btn-success" name="imageToAnalyze" accept="image/*;capture=camera" onchange="SubmitForm();" />
+                    <p>
+                        <img id="status" src="" />
+                    </p>
+                </center>
+
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function SubmitForm() {
+        document.getElementById('uploadForm').submit();
+        document.getElementById('status').src = "/images/working.gif";
+
+    }
+</script>
