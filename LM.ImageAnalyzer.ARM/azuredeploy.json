@@ -46,7 +46,7 @@
   "variables": {
     "computerVisionAccountName": "ImageAnalyzer-ComputerVision",
     "computerVisionURL": "https://westeurope.api.cognitive.microsoft.com",
-    "storageAccountName": "ImageAnalyzerStorage",
+    "storageAccountName": "[toLower('ImageAnalyzerStorage')]",
     "storageAccountId": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
     "imageAnalyzer-Web-Name": "ImageAnalyzer-Web",
     "imageAnalyzer-Web-ASP-Name": "ImageAnalyzer-Web-ASP",
