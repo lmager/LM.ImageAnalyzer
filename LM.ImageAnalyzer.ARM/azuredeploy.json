@@ -22,15 +22,122 @@
       "metadata": {
         "description": "Describes plan's pricing tier and capacity."
       }
+    },
+    "storageAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS",
+        "Standard_RAGRS"
+      ],
+      "metadata": {
+        "description": "Storage Account type"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
     }
   },
   "variables": {
-    "ImageAnalyzer-Web-Name": "[concat('ImageAnalyzer-Web')]",
-    "ImageAnalyzer-ASP-Name": "[concat('ImageAnalyzer-ASP')]"
+    "computerVisionAccountName": "ImageAnalyzer-ComputerVision",
+    "computerVisionURL": "https://westeurope.api.cognitive.microsoft.com",
+    "storageAccountName": "ImageAnalyzerStorage",
+    "storageAccountId": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+    "imageAnalyzer-Web-Name": "ImageAnalyzer-Web",
+    "imageAnalyzer-Web-ASP-Name": "ImageAnalyzer-Web-ASP",
+    "imageAnalyzer-Function-ASP-Name": "ImageAnalyzer-Function-ASP",
+    "imageAnalyzer-Function-Name": "ImageAnalyzer-Function"
   },
   "resources": [
     {
-      "name": "[variables('ImageAnalyzer-ASP-Name')]",
+      "name": "[variables('computerVisionAccountName')]",
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2017-04-18",
+      "sku": {
+        "name": "S1"
+      },
+      "kind": "ComputerVision",
+      "location": "[parameters('location')]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountName')]",
+      "apiVersion": "2019-04-01",
+      "location": "[parameters('location')]",
+      "kind": "Storage",
+      "sku": {
+        "name": "[parameters('storageAccountType')]"
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2018-02-01",
+      "name": "[variables('imageAnalyzer-Function-ASP-Name')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "name": "[variables('imageAnalyzer-Function-ASP-Name')]",
+        "computeMode": "Dynamic",
+        "sku": "Dynamic"
+      }
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('imageAnalyzer-Function-Name')]",
+      "location": "[parameters('location')]",
+      "kind": "functionapp",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('imageAnalyzer-Function-ASP-Name'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('imageAnalyzer-Function-ASP-Name'))]",
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "AzureWebJobsDashboard",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountId'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountId'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountId'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(variables('imageAnalyzer-Function-ASP-Name'))]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~2"
+            },
+            {
+              "name": "WEBSITE_NODE_DEFAULT_VERSION",
+              "value": "6.5.0"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "dotnet"
+            },
+            {
+              "name": "StorageAnalyzer",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountId'),'2015-05-01-preview').key1)]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[variables('imageAnalyzer-Web-ASP-Name')]",
       "type": "Microsoft.Web/serverfarms",
       "location": "[resourceGroup().location]",
       "apiVersion": "2015-08-01",
@@ -42,7 +149,7 @@
         "displayName": "ImageAnalyzer-ASP"
       },
       "properties": {
-        "name": "[variables('ImageAnalyzer-ASP-Name')]",
+        "name": "[variables('imageAnalyzer-Web-ASP-Name')]",
         "numberOfWorkers": 1
       }
     },
@@ -52,15 +159,15 @@
       "location": "[resourceGroup().location]",
       "apiVersion": "2015-08-01",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('ImageAnalyzer-ASP-Name'))]"
+        "[resourceId('Microsoft.Web/serverfarms', variables('imageAnalyzer-Web-ASP-Name'))]"
       ],
       "tags": {
-        "[concat('hidden-related:', resourceId('Microsoft.Web/serverfarms', variables('ImageAnalyzer-ASP-Name')))]": "Resource",
+        "[concat('hidden-related:', resourceId('Microsoft.Web/serverfarms', variables('imageAnalyzer-Web-ASP-Name')))]": "Resource",
         "displayName": "ImageAnalyzer-Web"
       },
       "properties": {
         "name": "[variables('ImageAnalyzer-Web-Name')]",
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('ImageAnalyzer-ASP-Name'))]"
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('imageAnalyzer-Web-ASP-Name'))]"
       },
       "resources": [
         {
@@ -71,7 +178,9 @@
             "[resourceId('Microsoft.Web/Sites/', variables('ImageAnalyzer-Web-Name'))]"
           ],
           "properties": {
-            "WEBSITE_TIME_ZONE": "Central Europe Standard Time"
+            "WEBSITE_TIME_ZONE": "Central Europe Standard Time",
+            "AnalyzerFunction:SaveImageKey": "listsecrets(resourceId('Microsoft.Web/sites/functions', variables('imageAnalyzer-Function-Name'), 'StoreImage'),'2015-08-01').key",
+            "AnalyzerFunction:BaseEndPoint": "listsecrets(resourceId('Microsoft.Web/sites/functions', variables('imageAnalyzer-Function-Name'), 'StoreImage'),'2015-08-01').trigger_url"
           }
         },
         {
