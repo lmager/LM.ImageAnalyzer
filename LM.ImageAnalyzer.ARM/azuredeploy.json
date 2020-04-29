@@ -82,8 +82,14 @@
       "location": "[parameters('location')]",
       "properties": {
         "name": "[variables('imageAnalyzer-Function-ASP-Name')]",
-        "computeMode": "Dynamic",
-        "sku": "Dynamic"
+        "computeMode": "Dynamic"
+      },
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic",
+        "size": "Y1",
+        "family": "Y",
+        "capacity": 0
       }
     },
     {
