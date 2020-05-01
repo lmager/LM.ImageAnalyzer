@@ -51,8 +51,7 @@
     "imageAnalyzer-Web-Name": "ImageAnalyzer-Web",
     "imageAnalyzer-Web-ASP-Name": "ImageAnalyzer-Web-ASP",
     "imageAnalyzer-Function-ASP-Name": "ImageAnalyzer-Function-ASP",
-    "imageAnalyzer-Function-Name": "ImageAnalyzer-Function",
-    "imageAnalyzer-Function-Id": "[concat(resourceGroup().id,'/providers/','Microsoft.Web/sites/functions/', variables('imageAnalyzer-Function-Name'))]"
+    "imageAnalyzer-Function-Name": "ImageAnalyzer-Function"
   },
   "resources": [
     {
@@ -185,9 +184,7 @@
             "[resourceId('Microsoft.Web/Sites/', variables('ImageAnalyzer-Web-Name'))]"
           ],
           "properties": {
-            "WEBSITE_TIME_ZONE": "Central Europe Standard Time",
-            "AnalyzerFunction:SaveImageKey": "[listkeys(variables('imageAnalyzer-Function-Id'),'2015-08-01').functionKeys.default]",
-            "AnalyzerFunction:BaseEndPoint": ""
+            "WEBSITE_TIME_ZONE": "Central Europe Standard Time"
           }
         },
         {
