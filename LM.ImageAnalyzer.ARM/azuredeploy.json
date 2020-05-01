@@ -185,8 +185,8 @@
           ],
           "properties": {
             "WEBSITE_TIME_ZONE": "Central Europe Standard Time",
-            "AnalyzerFunction:SaveImageKey": "[listsecrets(resourceId('Microsoft.Web/sites/functions', variables('imageAnalyzer-Function-Name'), 'StoreImage'),'2015-08-01').key]",
-            "AnalyzerFunction:BaseEndPoint": "[listsecrets(resourceId('Microsoft.Web/sites/functions', variables('imageAnalyzer-Function-Name'), 'StoreImage'),'2015-08-01').trigger_url]"
+            "AnalyzerFunction:SaveImageKey": "[listkeys(resourceId('Microsoft.Web/sites/functions', variables('imageAnalyzer-Function-Name'), '/host/default/'),'2015-08-01').functionKeys.default]",
+            "AnalyzerFunction:BaseEndPoint": "www.test.nl"
           }
         },
         {
