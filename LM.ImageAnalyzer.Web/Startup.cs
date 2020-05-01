@@ -1,3 +1,4 @@
+using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +20,7 @@ namespace LM.ImageAnalyzer.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+            services.AddSingleton(typeof(HttpClient));
             services.Configure<AnalyserFunctionSettings>(Configuration.GetSection("AnalyzerFunction"));
         }
 
