@@ -43,6 +43,12 @@ namespace LM.ImageAnalyzer.Web.Controllers
             return BadRequest();
         }
 
+        public IActionResult Result(string imageId)
+        {
+            ViewData["ImageName"] = imageId;
+            return View();
+        }
+
         private async Task<string> SendImageToStorage(byte[] imageData)
         {
             using (var content = new ByteArrayContent(imageData))
