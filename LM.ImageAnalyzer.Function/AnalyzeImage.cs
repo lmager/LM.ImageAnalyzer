@@ -30,14 +30,9 @@ namespace LM.ImageAnalyzer.Function
                    };
 
 
-                //log.LogInformation($"Analyze image");
-                //string analyzeResult = Analyze(imageToAnalyze);
-                //log.LogInformation($"Analyze result: {analyzeResult}");
-
-                log.LogInformation($"Read text on image");
-                IList<TextRecognitionResult> textResult = GetTextAsync(imageToAnalyze).Result;
-                string text = LogTextResult(textResult);
-                log.LogInformation($"Text Result: {text}");
+                log.LogInformation($"Analyze image");
+                string analyzeResult = Analyze(imageToAnalyze);
+                log.LogInformation($"Analyze result: {analyzeResult}");
             }
             catch (Exception e)
             {
@@ -46,63 +41,19 @@ namespace LM.ImageAnalyzer.Function
             }
         }
 
-        //private static string Analyze(Stream imageToAnalyze)
-        //{
-        //    IList<VisualFeatureTypes> features = new List<VisualFeatureTypes>
-        //    {
-        //        VisualFeatureTypes.Adult,
-        //        VisualFeatureTypes.Description,
-        //        VisualFeatureTypes.Faces,
-        //        VisualFeatureTypes.ImageType,
-        //        VisualFeatureTypes.Tags
-        //    };
-
-        //    ImageAnalysis analyzeResult = _computerVisionClient.AnalyzeImageInStreamAsync(imageToAnalyze, features).Result;
-        //    return analyzeResult.ToString();
-        //}
-
-        public static async Task<IList<TextRecognitionResult>> GetTextAsync(Stream imageToAnalyze)
+        private static string Analyze(Stream imageToAnalyze)
         {
-            BatchReadFileInStreamHeaders textHeaders = await _computerVisionClient.BatchReadFileInStreamAsync(imageToAnalyze);
-            string operationLocation = textHeaders.OperationLocation;
-            string operationId = operationLocation.Substring(operationLocation.Length - NumberOfCharsInOperationId);
-
-            ReadOperationResult result = await _computerVisionClient.GetReadOperationResultAsync(operationId);
-
-            int i = 0;
-            int maxRetries = 10;
-            while ((result.Status == TextOperationStatusCodes.Running || result.Status == TextOperationStatusCodes.NotStarted) && i++ < maxRetries)
+            IList<VisualFeatureTypes> features = new List<VisualFeatureTypes>
             {
-                await Task.Delay(1000);
-                result = await _computerVisionClient.GetReadOperationResultAsync(operationId);
-            }
+                VisualFeatureTypes.Adult,
+                VisualFeatureTypes.Description,
+                VisualFeatureTypes.Faces,
+                VisualFeatureTypes.ImageType,
+                VisualFeatureTypes.Tags
+            };
 
-            IList<TextRecognitionResult> recResults = result.RecognitionResults;
-            return recResults;
-        }
-
-        private static string LogTextResult(IList<TextRecognitionResult> results)
-        {
-            var stringBuilder = new StringBuilder();
-            if (results != null && results.Any())
-            {
-                stringBuilder.AppendLine();
-
-                foreach (TextRecognitionResult result in results)
-                {
-                    foreach (Line line in result.Lines)
-                    {
-                        foreach (Word word in line.Words)
-                        {
-                            stringBuilder.Append(word.Text);
-                            stringBuilder.Append(" ");
-                        }
-                        stringBuilder.AppendLine();
-                    }
-                    stringBuilder.AppendLine();
-                }
-            }
-            return stringBuilder.ToString();
+            ImageAnalysis analyzeResult = _computerVisionClient.AnalyzeImageInStreamAsync(imageToAnalyze, features).Result;
+            return analyzeResult.ToString();
         }
     }
 }
