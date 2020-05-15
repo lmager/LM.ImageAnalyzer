@@ -21,7 +21,6 @@ namespace LM.ImageAnalyzer.Function
             var analyzerId = Guid.NewGuid();
             log.LogInformation($"Start - analyzerId: {analyzerId}.");
 
-            // Upload file to Blob
             try
             {
                 await blobOutput.CreateIfNotExistsAsync();

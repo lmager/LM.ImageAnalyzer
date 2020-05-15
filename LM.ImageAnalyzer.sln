@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LM.ImageAnalyzer.Function",
 EndProject
 Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "LM.ImageAnalyzer.ARM", "LM.ImageAnalyzer.ARM\LM.ImageAnalyzer.ARM.deployproj", "{115C9E35-0507-4C11-815E-B4D3C144C325}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LM.ImageAnalyzer.Shared", "LM.ImageAnalyzer.Shared\LM.ImageAnalyzer.Shared.csproj", "{C81499D1-8BBC-4D24-834A-5AC24456C283}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{115C9E35-0507-4C11-815E-B4D3C144C325}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{115C9E35-0507-4C11-815E-B4D3C144C325}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{115C9E35-0507-4C11-815E-B4D3C144C325}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C81499D1-8BBC-4D24-834A-5AC24456C283}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C81499D1-8BBC-4D24-834A-5AC24456C283}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C81499D1-8BBC-4D24-834A-5AC24456C283}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C81499D1-8BBC-4D24-834A-5AC24456C283}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

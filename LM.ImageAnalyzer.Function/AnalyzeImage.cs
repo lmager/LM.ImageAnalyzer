@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
+using TableEntities = LM.ImageAnalyzer.Shared.Entities;
 
 namespace LM.ImageAnalyzer.Function
 {
@@ -18,9 +17,11 @@ namespace LM.ImageAnalyzer.Function
         private static ComputerVisionClient _computerVisionClient;
 
         [FunctionName("AnalyzeImage")]
-        public static async Task<HttpResponseMessage> Run([BlobTrigger("uploadedimages/{name}", Connection = "StorageAnalyzer")]Stream imageToAnalyze, string name, ILogger log)
+        public static void Run([BlobTrigger("uploadedimages/{name}", Connection = "StorageAnalyzer")]Stream imageToAnalyze,
+            [Table("AnalyzeResult", Connection = "")] CloudTable resultTable,
+            string name, ILogger log)
         {
-            log.LogInformation($"C# AnalyzeImage function Processed blob\n Name:{name} \n Size: {imageToAnalyze.Length} Bytes");
+            log.LogInformation($"AnalyzeImage function Processed blob\n Name:{name} \n Size: {imageToAnalyze.Length} Bytes");
 
             try
             {
@@ -33,19 +34,30 @@ namespace LM.ImageAnalyzer.Function
                 log.LogInformation($"Analyze image");
                 string jsonResult = Analyze(imageToAnalyze);
                 log.LogInformation($"Analyze result: {jsonResult}");
-                return new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent(jsonResult, Encoding.UTF8, "application/json")
-                };
+
+                log.LogInformation($"Save json result");
+                SaveResult(resultTable, name, jsonResult).Wait();
+                log.LogInformation($"Ready");
             }
             catch (Exception e)
             {
                 log.LogError(e.Message, e);
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent(e.Message, Encoding.UTF8, "application/json")
-                };
+                throw;
             }
+        }
+
+        private static async Task SaveResult(CloudTable cloudTable, string imageId, string jsonResult)
+        {
+            await cloudTable.CreateIfNotExistsAsync();
+            var tableEntry = new TableEntities.AnalyzeResult()
+
+            {
+                RowKey = imageId,
+                PartitionKey = imageId,
+                ImageAnalysisJson = jsonResult
+            };
+
+            await cloudTable.ExecuteAsync(TableOperation.InsertOrReplace(tableEntry));
         }
 
         private static string Analyze(Stream imageToAnalyze)
