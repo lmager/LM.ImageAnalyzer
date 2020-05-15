@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.WindowsAzure.Storage.Table;
+﻿using Microsoft.WindowsAzure.Storage.Table;
 
 namespace LM.ImageAnalyzer.Shared.Entities
 {

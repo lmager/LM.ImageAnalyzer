@@ -8,6 +8,7 @@ using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using TableEntities = LM.ImageAnalyzer.Shared.Entities;
 
@@ -20,7 +21,9 @@ namespace LM.ImageAnalyzer.Function
 
         [FunctionName("ReadImageText")]
         public static void Run([BlobTrigger("uploadedimages/{name}", Connection = "StorageAnalyzer")]Stream imageToAnalyze,
-            [Table("AnalyzeResult", Connection = "")] CloudTable resultTable, string name, ILogger log)
+            [Table("AnalyzeResult", Connection = "StorageAnalyzer")] CloudTable resultTable,
+            string name, 
+            ILogger log)
         {
             log.LogInformation($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {imageToAnalyze.Length} Bytes");
 
@@ -68,9 +71,10 @@ namespace LM.ImageAnalyzer.Function
             return recResults;
         }
 
-        private static async Task SaveResult(CloudTable cloudTable, string imageId, string textResult)
+        private static async Task SaveResult(CloudTable table, string imageId, string textResult)
         {
-            await cloudTable.CreateIfNotExistsAsync();
+            await table.CreateIfNotExistsAsync();
+
             var tableEntry = new TableEntities.AnalyzeResult()
 
             {
@@ -79,7 +83,7 @@ namespace LM.ImageAnalyzer.Function
                 TextResult = textResult
             };
 
-            await cloudTable.ExecuteAsync(TableOperation.InsertOrReplace(tableEntry));
+            await table.ExecuteAsync(TableOperation.InsertOrReplace(tableEntry));
         }
 
         private static string LogTextResult(IList<TextRecognitionResult> results)

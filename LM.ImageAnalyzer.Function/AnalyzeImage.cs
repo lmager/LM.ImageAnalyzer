@@ -18,8 +18,9 @@ namespace LM.ImageAnalyzer.Function
 
         [FunctionName("AnalyzeImage")]
         public static void Run([BlobTrigger("uploadedimages/{name}", Connection = "StorageAnalyzer")]Stream imageToAnalyze,
-            [Table("AnalyzeResult", Connection = "")] CloudTable resultTable,
-            string name, ILogger log)
+            [Table("AnalyzeResult", Connection = "StorageAnalyzer")] CloudTable resultTable,
+            string name,
+            ILogger log)
         {
             log.LogInformation($"AnalyzeImage function Processed blob\n Name:{name} \n Size: {imageToAnalyze.Length} Bytes");
 
@@ -46,9 +47,10 @@ namespace LM.ImageAnalyzer.Function
             }
         }
 
-        private static async Task SaveResult(CloudTable cloudTable, string imageId, string jsonResult)
+        private static async Task SaveResult(CloudTable table, string imageId, string jsonResult)
         {
-            await cloudTable.CreateIfNotExistsAsync();
+            await table.CreateIfNotExistsAsync();
+
             var tableEntry = new TableEntities.AnalyzeResult()
 
             {
@@ -57,7 +59,7 @@ namespace LM.ImageAnalyzer.Function
                 ImageAnalysisJson = jsonResult
             };
 
-            await cloudTable.ExecuteAsync(TableOperation.InsertOrReplace(tableEntry));
+            await table.ExecuteAsync(TableOperation.InsertOrReplace(tableEntry));
         }
 
         private static string Analyze(Stream imageToAnalyze)
